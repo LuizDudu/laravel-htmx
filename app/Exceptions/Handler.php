@@ -3,6 +3,9 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -26,5 +29,14 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        $this->renderable(function (Throwable $e, Request $request) {
+            if (!$e instanceof ValidationException && $request->hasHeader('HX-Request')) {
+                return response([
+                    'errors' => [$e->getMessage()]
+                ], $e->getCode() ?: 500);
+            }
+        });
     }
+
 }
